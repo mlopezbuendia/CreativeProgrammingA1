@@ -6,18 +6,35 @@ AudioPlayer playerColission;
 //Punctuation
 long points = 0;
 
+//Minimum distance each moment
+int minDist = 0;
+
 //Ellipse Position
-int ellipseX = 300;
-int ellipseY = 300;
+int[] ellipseX;
+int[] ellipseY;
+int numEllipse=4;
 
 void setup(){
   
   //Screen parameters
   size(640, 1024);
-  background(0);  
+  background(0);
+
+  //Set ellipse positions
+  ellipseX = new int[numEllipse];
+  ellipseY = new int[numEllipse];
+  int start=100;
+  for (int i=0; i<numEllipse; i++){
+    ellipseX[i] = start;
+    ellipseY[i] = start;
+    start = start + 100; 
+  }
   
-  //Launch ellipse through the screen with a size of 100 x 100
-  launchEllipse(100, 100);
+  //Draw initial ellipses
+  for (int i=0; i < numEllipse; i++){
+    ellipse(ellipseX[i], ellipseY[i], 100, 100);
+  }
+
   
   //Load background music and enable loop
   maxim = new Maxim(this);
@@ -41,20 +58,22 @@ void draw(){
 
 void mouseDragged(){
   
+  int[] distances;
+  
   //Play music
   player.play();
   
   /* Change the background colour depending on the distance between auto-moving
    * and user ellipse. It also updates punctuation
    */
-  updateBackgroundColour(mouseX, mouseY);
+  distances = updateBackgroundColour(mouseX, mouseY);
   
   //Draw the little ellipse sequence and the auto-moving ellipse
-  launchEllipse();
+  launchEllipse(100,100);
   ellipse(mouseX, mouseY, 50, 50);
   
   //Check collision
-  if(thereIsCollision(mouseX, mouseY)){
+  if(thereIsCollision(distances)){
     playerCollision.play();
     //Decrease points
     points = points - 50.00;
@@ -63,10 +82,10 @@ void mouseDragged(){
     playerCollision.stop();
   }
  
-  /* Change the audio speed depending on the distance between auto-moving 
-   * and user ellipse
+  /* Change the audio speed depending on the distance calculated 
+   * within update background
    */
-  updateBackgroundAudio(mouseX, mouseY);
+  updateBackgroundAudio();
  
  //Update punctuation
   text("Points: " + points, 10, 30); 
@@ -92,68 +111,85 @@ void mouseReleased(){
 /**
  * Draw a ellipse moving through the screen
  */
-void launchEllipse(){
+void launchEllipse(int ancho, int largo){
   
   //Get a random difference
-  int newX = int(random(-10, 10));
-  int newY = int(random(-5, 5));
+  int[] newX = new int[numEllipse];
+  int[] newY = new int[numEllipse];
   
-  //We are going to draw 10 ellipses each time to simulate a smooth movement
-  newX = newX/10;
-  newY = newY/10;
-  
-  for (int i=0; i<10; i++){
-    ellipseX = ellipseX + newX;
-    ellipseY = ellipseY + newY;
-    
-    //Limit values into screen limits
-    ellipseX = constrain(ellipseX, 0, width);
-    ellipseY = constrain(ellipseY, 0, height);
-  
-    ellipse(ellipseX, ellipseY, 100 , 100);
+  for(int i=0; i<numEllipse;i++){
+    newX[i] = int(random(-10, 10));
+    newY[i] = int(random(-5, 5));
   }
+   
+  //We are going to draw 10 ellipses each time to simulate a smooth movement
+  for(int i=0; i<numEllipse;i++){
     
+    newX[i] = newX[i]/10;
+    newY[i] = newY[i]/10;
+  
+    for (int j=0; j<10; j++){
+      ellipseX[i] = ellipseX[i] + newX[i];
+      ellipseY[i] = ellipseY[i] + newY[i];
+    
+      //Limit values into screen limits
+      ellipseX[i] = constrain(ellipseX[i], 0, width);
+      ellipseY[i] = constrain(ellipseY[i], 0, height);
+  
+      ellipse(ellipseX[i], ellipseY[i], ancho , largo);
+    }
+  }
 }
 
 /**
  * Upadte the background colour attending at the distancte between
  * both ellipses. It also updates punctuation
+ * @return minDist to update musicBackground
  */
-void updateBackgroundColour(int posX, int posY){
+int[] updateBackgroundColour(int posX, int posY){
   
-  int distance = 0;
+  int[] distance;
   int red = 0;
   long newPoints = 0.00;
   
-  //Get the distance between both ellipses
-  distance = dist(posX, posY, ellipseX, ellipseY);
+  distance = new int[numEllipse];
+  
+  //Get the distance between every ellipse
+  for (int i=0; i<numEllipse; i++){
+    distance[i] = dist(posX, posY, ellipseX[i], ellipseY[i]);
+  }
+  
+  //Get the minimum distance
+  minDist = getMinDist(distance);
   
   //Limit the top value of distance to avoid getting the diagonal length
-  distance = constrain(distance, 0, height);
+  minDist = constrain(minDist, 0, height);
   
   //Map red colour
-  red = map(distance, 0, height, 255, 0);
+  red = map(minDist, 0, height, 255, 0);
   
   background(red, 0, 0);
   
-  //Update punctuation, max 10 point in each call
-  if(distance < 200){
-    if(distance < 100){
-      newPoints = 10;
-    }
-    else if(distance < 125){
-      newPoints = 0.30;
-    }
-    else if(distance < 150){
-      newPoints = 0.20;
-    }
-    else if(distance < 175){
-      newPoints = 0.10;
-    }
-  }
+  //Update punctuation, max 10 point in each call WE NEED TO TAKE INTO ACCOUNT PUNTS WITH ALL ELLIPSES
+//  if(distance < 200){
+//    if(distance < 100){
+//      newPoints = 10;
+//    }
+//    else if(distance < 125){
+//      newPoints = 0.30;
+//    }
+//    else if(distance < 150){
+//      newPoints = 0.20;
+//    }
+//    else if(distance < 175){
+//      newPoints = 0.10;
+//    }
+//  }
   //If distance is larger than half screen height we don give points
 
-  points = points + newPoints;
+  //points = points + newPoints;
+  
+  return distance;
   
 }
 
@@ -161,19 +197,12 @@ void updateBackgroundColour(int posX, int posY){
  * Upadte the background audio speed attending at the distancte between
  * both ellipses
  */
-void updateBackgroundAudio(int posX, int posY){
+void updateBackgroundAudio(){
   
-  int distance = 0;
   int speed = 0;
   
-  //Get the distance between both ellipses
-  distance = dist(posX, posY, ellipseX, ellipseY);
-  
-  //Limit the top value of distance to avoid getting the diagonal lenght
-  distance = constrain(distance, 0, height);
-  
   //Map audio speed
-  speed = map(distance, 0, height, 1.5, 0.75);
+  speed = map(minDist, 0, height, 1.5, 0.75);
   
   player.speed(speed);
   
@@ -182,16 +211,32 @@ void updateBackgroundAudio(int posX, int posY){
 /**
  * Check if ellipses are in the same space
  */
-boolean thereIsCollision(int posX, int posY){
+boolean thereIsCollision(int[] distances){
   
   boolean result = false;
-  int distance = 0;
   
-  //Get the distance between both centers
-  distance = dist(posX, posY, ellipseX, ellipseY);
+  //Check collision for each ellipse
+  for (int i=0; i<numEllipse; i++){  
+    if(distances[i] < 75){
+      result = true;
+    }
+  }
   
-  if(distance < 75){
-    result = true;
+  return result;
+  
+}
+
+/*
+ * Return le lowest value in an array
+ */
+int getMinDist(int[] distances){
+  
+  int result = height;
+  
+  for(int i=0; i<numEllipse; i++){
+    if(distances[i] < result){
+      result = distances[i];
+    }
   }
   
   return result;
