@@ -1,17 +1,17 @@
 //Audio variables
 Maxim  maxim;
 AudioPlayer player;
-AudioPlayer playerColission;
+AudioPlayer playerCollision;
 
 //Punctuation
-long points = 0;
+float points = 0;
 
 //Minimum distance at each moment
-int minDist = 0;
+float minDist = 0;
 
 //Ellipse Position
-int[] ellipseX;
-int[] ellipseY;
+float[] ellipseX;
+float[] ellipseY;
 int numEllipse=16;
 
 //Text box parameters
@@ -25,99 +25,55 @@ int textBox = 153;
 int normal = 0;
 int badEllipse = 255;
 
-//Check when to start drawing
-boolean settingsComplete = false;
-boolean initial = true;
-
-//String for user interaction
-PFont f;
-String typing = "";
-String saved = "";
-
 void setup(){
   
   //Screen parameters
-  size(800, 800);
   background(0); 
   
   //Text parameters
   textSize(textHeight);
-  f = createFont("Arial",16,true);
+  
+  background(0);
+  fill(badEllipse);
+      
+  //Set ellipse positions and draw them
+  initEllipsePosition();
+  
+  //Load background music and enable loop
+  maxim = new Maxim(this);
+  player = maxim.loadFile("background.wav");
+  player.setLooping(true);
+  
+  //Load collision sound
+  playerCollision = maxim.loadFile("alarm.wav");
+  playerCollision.volume(0.25);
+  playerCollision.setLooping(true);
+    
+  //Define Text and print it
+  fill(textBox);
+  rect(0, 0, width, boxHeight);
+  fill(normal);
+  text("Points: 0.00", textTopPadding , textLeftPadding);
   
 }
 
 void draw(){
-  
-  //Before starting we need to get user info
-  if(!settingsComplete){
-    
-    // Set the font and fill for text
-    textFont(f);
-    fill(badEllipse);
-  
-    // Display everything
-    text("Click in the screen and type how many enemies you want (0-25): ", 25, 40);
-    text(typing, 25, 90);
-    text(saved, 25, 130);
-    
-    fill(normal);
-    
-    //Wait for user input in "key pressed" where we change settingsComplete value
-  }
-  //If user have already inserted info...
-  else{
-    //The very first time setting are complete, we need to initialize screen with ellipses
-    if (initial){
-      
-      background(0);
-      fill(badEllipse);
-      
-      //Set ellipse positions and draw them
-      initEllipsePosition();
-  
-      //Load background music and enable loop
-      maxim = new Maxim(this);
-      player = maxim.loadFile("background.wav");
-      player.setLooping(true);
-  
-      //Load collision sound
-      playerCollision = maxim.loadFile("alarm.wav");
-      playerCollision.volume(0.25);
-      playerCollision.setLooping(true);
-    
-      //Define Text and print it
-      fill(textBox);
-      rect(0, 0, width, boxHeight);
-      fill(normal);
-      text("Points: 0.00", textTopPadding , textLeftPadding);
-      
-      //Skip this step next time
-      initial = false;
-      
-    }
-  }
-}
 
-/**
- * Only react if settings are complete
- */
-void mouseDragged(){
-  
-  int[] distances;
-  
-  if(settingsComplete){
+  float[] distances;
+
+  if(mousePressed){
     //Play music
     player.play();
-    
+      
     /* Change the background colour depending on the distance between auto-moving
      * and user ellipse. It also checks collision and play alarm sound in that case
      */
     distances = updateBackgroundColour(mouseX, mouseY);
-    
+      
     //Draw the little ellipse sequence and the auto-moving ellipse
     launchEllipse(100,100);
     ellipse(mouseX, mouseY, 50, 50);
-    
+      
     /* Change the audio speed depending on the distance calculated 
      * within update background
      */
@@ -128,37 +84,44 @@ void mouseDragged(){
     fill(textBox);
     rect(0, 0, width, boxHeight);
     fill(normal);
-    text("Points: " + points, 10, 30); 
+    text("Points: " + points, 10, 30);
    }
+  
+}
+
+/**
+ * Only react if settings are complete
+ */
+void mousePressed(){
+  
+
+
 }
 
 void mouseReleased(){
   
-  if(settingsComplete){
-    //Erase ellipse Tails
-    updateBackgroundColour(mouseX, mouseY);
-    //Draw user ellipse
-    ellipse(mouseX, mouseY, 50, 50);
-    //Draw the "bad" ellipses
-    fill(badEllipse);
-    for (int i=0; i<numEllipse; i++){
-      ellipse(ellipseX[i], ellipseY[i], 100, 100);
-    }
-    fill(normal);
-    
-    //Stop music
-    player.stop();
-    
-    //Show current punctuation 
-    fill(textBox);
-    rect(0, 0, width, boxHeight);
-    fill(normal);
-    text("Points: " + points, 10, 30);
-    
-    //Reset punctuation
-    points = 0;
-  
+  //Erase ellipse Tails
+  updateBackgroundColour(mouseX, mouseY);
+  //Draw user ellipse
+  ellipse(mouseX, mouseY, 50, 50);
+  //Draw the "bad" ellipses
+  fill(badEllipse);
+  for (int i=0; i<numEllipse; i++){
+    ellipse(ellipseX[i], ellipseY[i], 100, 100);
   }
+  fill(normal);
+  
+  //Stop music
+  player.stop();
+  
+  //Show current punctuation 
+  fill(textBox);
+  rect(0, 0, width, boxHeight);
+  fill(normal);
+  text("Points: " + points, 10, 30);
+  
+  //Reset punctuation
+  points = 0;
   
 }
 
@@ -168,12 +131,12 @@ void mouseReleased(){
 void launchEllipse(int ancho, int largo){
   
   //Get a random difference
-  int[] newX = new int[numEllipse];
-  int[] newY = new int[numEllipse];
+  float[] newX = new float[numEllipse];
+  float[] newY = new float[numEllipse];
   
   for(int i=0; i<numEllipse;i++){
-    newX[i] = int(random(-10, 10));
-    newY[i] = int(random(-5, 5));
+    newX[i] = random(-10, 10);
+    newY[i] = random(-5, 5);
   }
   
   fill(badEllipse);
@@ -203,15 +166,15 @@ void launchEllipse(int ancho, int largo){
  *
  * @return array with distance between each ellipse and user ellipse
  */
-int[] updateBackgroundColour(int posX, int posY){
+float[] updateBackgroundColour(float posX, float posY){
   
-  int[] distance;
-  int red = 0;
-  int green = 0;
-  int blue = 0;
-  long newPoints = 0.00;
+  float[] distance;
+  float red = 0.00;
+  float green = 0.00;
+  float blue = 0.00;
+  float newPoints = 0.00;
   
-  distance = new int[numEllipse];
+  distance = new float[numEllipse];
   
   //Get the distance between every ellipse
   for (int i=0; i<numEllipse; i++){
@@ -257,7 +220,7 @@ int[] updateBackgroundColour(int posX, int posY){
  */
 void updateBackgroundAudio(){
   
-  int speed = 0;
+  float speed = 0;
   
   //Map audio speed
   speed = map(minDist, 0, height, 1.5, 0.75);
@@ -269,9 +232,9 @@ void updateBackgroundAudio(){
 /*
  * Return le lowest value in an array
  */
-int getMinDist(int[] distances){
+float getMinDist(float[] distances){
   
-  int result = height;
+  float result = height;
   
   for(int i=0; i<numEllipse; i++){
     if(distances[i] < result){
@@ -287,15 +250,15 @@ int getMinDist(int[] distances){
  * Obtain the punctuation based on the position of all ellipses
  */
 
-long calculatePoints(int[] distances){
+float calculatePoints(float[] distances){
   
-  long result = 0.00;
+  float result = 0.00;
   
   //Get points for each ellipse distance
   for(int i=0; i<numEllipse; i++){
     if(distances[i] < 200){
       if(distances[i] < 100){
-        result += 10;
+        result += 10.00;
       }
       else if(distances[i] < 125){
         result += 0.30;
@@ -320,13 +283,13 @@ long calculatePoints(int[] distances){
  */
 void initEllipsePosition(){
   
-  ellipseX = new int[numEllipse];
-  ellipseY = new int[numEllipse];
+  ellipseX = new float[numEllipse];
+  ellipseY = new float[numEllipse];
     
   //Get random position for each ellipse
   for (int i=0; i<numEllipse; i++){
-    ellipseX[i] = int(random(100, width-100));
-    ellipseY[i] = int(random(100 + boxHeight, height-100));
+    ellipseX[i] = random(100, width-100);
+    ellipseY[i] = random(100 + boxHeight, height-100);
   }
   
   //Draw initial ellipses
@@ -335,35 +298,4 @@ void initEllipsePosition(){
   }
 }
 
-/**
- * Process key user input
- */
-void keyPressed() {
-  
-  //Used to transform input char into string
-  String keyStr;
-  String numbers = "0123456789";
-  
-  // If the return key is pressed, save the String and clear it
-  if (key == '\n' ) {
-    saved = typing;
-    // A String can be cleared by setting it equal to ""
-    typing = ""; 
-    settingsComplete = true;
-    
-    //Convert string into integer
-    numEllipse = int(saved);
-    
-    //The maximum numbre of ellipses is 25
-    if(numEllipse > 25){
-      numEllipse=25; 
-    }
-    
-  } else {
-    // Otherwise, concatenate the String only if the current input is a number
-    if(numbers.indexOf(key) != -1){
-      keyStr = new String(key);
-      typing += keyStr;
-    }
-  }
-}
+
