@@ -81,9 +81,9 @@ void draw(){
       player.setLooping(true);
   
       //Load collision sound
-      playerCollision = maxim.loadFile("alarm.wav");
-      playerCollision.volume(0.25);
-      playerCollision.setLooping(true);
+      playerColission = maxim.loadFile("alarm.wav");
+      playerColission.volume(0.25);
+      playerColission.setLooping(true);
     
       //Define Text and print it
       fill(textBox);
@@ -226,7 +226,7 @@ int[] updateBackgroundColour(int posX, int posY){
   
   //Check collision
   if(minDist < 75){
-    playerCollision.play();
+    playerColission.play();
     //Decrease points
     points = points - 50.00;
     //Paint background in yellow
@@ -236,7 +236,7 @@ int[] updateBackgroundColour(int posX, int posY){
   }
   //If no collision
   else{
-    playerCollision.stop();
+    playerColission.stop();
     
     //Map red colour
     red = map(minDist, 0, height, 255, 0);
