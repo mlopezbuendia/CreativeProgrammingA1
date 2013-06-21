@@ -147,11 +147,16 @@ void mouseDragged() {
 
     //Update punctuation, max 10 point in each call for each ellipse
     points = points + calculatePoints(distances);
-    fill(textBox);
-    //rect(0, 0, width, boxHeight);
+   
     image(scoreBoard, width/2, boxHeight/2, width, boxHeight);
-    fill(normal);
+    
+    
+    //Show points in red if they are less than 0
+    if(int(points) < 0){
+      fill(255, 0, 0);
+    }
     text("Points: " + int(points), 10, 30);
+    fill(normal);
   }
 }
 
@@ -173,12 +178,13 @@ void mouseReleased() {
     player.stop();
 
     //Show current punctuation 
-    fill(textBox);
-    //rect(0, 0, width, boxHeight);
     image(scoreBoard, width/2, boxHeight/2, width, boxHeight);
-    fill(normal);
+    
+    if(int(points) < 0){
+      fill(255,0,0);
+    }
     text("Points: " + int(points), 10, 30);
-
+    fill(normal);
     //Reset punctuation
     points = 0;
   }
